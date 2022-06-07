@@ -12,12 +12,17 @@ VEHICLE_DETECTOR_NAMES = "data/vehicle-detection.names"
 VEHICLE_DETECTOR_WEIGHTS = "data/vehicle-detection.weights"
 VEHICLE_DETECTOR_THRESHOLD = 0.25
 
-def prepare_image(network, image_path):
+def prepare_image(network, image_path, bounding_box=None):
     width = dn.network_width(network)
     height = dn.network_height(network)
     darknet_image = dn.make_image(width, height, 3)
 
-    image = cv2.imread(image_path)
+    if bounding_box is None:
+        image = cv2.imread(image_path)
+    else:
+        x1, y1, x2, y2 = dn.bbox2points(bounding_box)
+        image = cv2.imread(image_path)[x1: x2, y1: y2]
+
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_resized = cv2.resize(image_rgb, (width, height),
                                interpolation=cv2.INTER_LINEAR)
@@ -25,7 +30,6 @@ def prepare_image(network, image_path):
     dn.copy_image_from_bytes(darknet_image, image_resized.tobytes())
 
     return darknet_image
-
 
 def vehicle_detector(image_path):
     try:
@@ -57,8 +61,11 @@ def vehicle_detector(image_path):
             f.write(json.dumps(result))
             f.close()
 
+        bounding_boxes = [item[2] for item in detections]
+
+        vehicles = [prepare_image(network, image_path, box) for box in bounding_boxes]
+
+        return vehicles
+
     except Exception as e:
         print(e)
-
-
-vehicle_detector("data\sample-image.jpg")
