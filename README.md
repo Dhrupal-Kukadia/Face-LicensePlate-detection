@@ -3,7 +3,7 @@ License plate detector based on darknet
 
 For building darknet follow the instructions given [here](https://github.com/AlexeyAB/darknet#requirements-for-windows-linux-and-macos)
 
-Download these files in a sub-directory `data`.
+Download the model files from [here](https://web.inf.ufpr.br/vri/publications/layout-independent-alpr/) in a sub-directory `data`.
 
 Run the command `pip install -r requirements.txt` to install all dependencies.
 
