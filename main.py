@@ -1,12 +1,8 @@
-from this import s
 import darknet.darknet as dn # importing darknet wrapper for python
 import cv2
 import json
 import os
 import numpy as np
-
-import string
-import random
 
 
 VEHICLE_DETECTOR_CFG = "data/vehicle-detection.cfg"
