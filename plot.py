@@ -18,11 +18,3 @@ def plot_image(image_path, box=None):
         cv2.destroyAllWindows()
     else:
         print(image_path + " doesn't exist.")
-        
-
-plot_image("data/679660_leftImg8bit.png", box= [
-                502.914979757085,
-                438.14903846153845,
-                560.6072874493927,
-                452.1129807692308
-            ])
