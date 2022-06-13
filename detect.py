@@ -88,31 +88,9 @@ def vehicle_detector(image_path):
 
         scaled_bounding_boxes = [scaling(image_shape, vehicle_network_shape, box) for box in bounding_boxes]
 
-        # result = {}
-
         image_name = image_path.split('\\')[-1]
         save_path = os.path.splitext(image_path)[0]
         result_name = os.path.splitext(image_name)[0] + ".json"
-
-        # filename = os.path.join("data/vehicle-detections", result_name)
-
-        # with open(filename, mode='w', encoding='utf-8') as f:
-        #     pass
-        
-        # with open(filename, mode="a", encoding="utf-8") as f:
-        #     for i in range(len(detections)):
-        #         item = {
-        #             'vehicle': detections[i][0],
-        #             'confidence': detections[i][1],
-        #             'bounding box': scaled_bounding_boxes[i],
-        #         }
-
-        #         result[i] = item 
-
-        #     f.write(json.dumps(result))
-        #     f.close()
-
-        print("Found " + str(len(detections)) + " vehicles in the image.")
         
         vehicles = []
 
@@ -124,7 +102,6 @@ def vehicle_detector(image_path):
         return vehicles, result_name, scaled_bounding_boxes, save_path
     
     else:
-        print("No vehicles found")
         return None
 
 def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
@@ -164,12 +141,9 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
 
                     f.write(json.dumps(result))
                     f.close()
-
-                print(str(len(lp_detections)) + " license plates were found.")
             
             else:
-                print("No license plates were found.")
-                return None
+                original_bounding_boxes = None
 
             os.remove(vehicles[i])
             
