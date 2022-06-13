@@ -49,10 +49,15 @@ def save_image(image_path, save_path, image_name, box= None):
         image = cv2.imread(image_path)
 
         if box:
+            for point in box:
+                if point < 0:
+                    return False
             box = [int(item) for item in box]
             image = image[box[1]: box[3], box[0]: box[2]]
 
         cv2.imwrite(os.path.join(save_path, image_name), image)
+
+        return True
 
 def scaling(image_shape, network_shape, box):
     scale = np.divide(image_shape, network_shape)
@@ -85,7 +90,7 @@ def vehicle_detector(image_path):
 
         # result = {}
 
-        image_name = image_path.split('/')[-1]
+        image_name = image_path.split('\\')[-1]
         save_path = os.path.splitext(image_path)[0]
         result_name = os.path.splitext(image_name)[0] + ".json"
 
@@ -112,14 +117,15 @@ def vehicle_detector(image_path):
         vehicles = []
 
         for i in range(len(scaled_bounding_boxes)):
-            vehicle_name = os.path.splitext(image_name)[0] + "_" + str(i) +".png"
-            vehicles.append(os.path.join(save_path, vehicle_name))
-            save_image(image_path, save_path=save_path, image_name=vehicle_name, box = scaled_bounding_boxes[i])
+            vehicle_name = image_name + "_" + str(i) +".png"
+            if save_image(image_path, save_path=save_path, image_name=vehicle_name, box = scaled_bounding_boxes[i]):
+                vehicles.append(os.path.join(save_path, vehicle_name))
         
         return vehicles, result_name, scaled_bounding_boxes, save_path
     
     else:
         print("No vehicles found")
+        return None
 
 def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
     if(len(vehicles)):
@@ -136,6 +142,8 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
 
                 original_bounding_boxes = [reset_crop(crop_locations[i], box) for box in scaled_bounding_boxes]
 
+                if not os.path.exists(annot_path):
+                    os.makedirs(annot_path)
 
                 filename = os.path.join(annot_path, result_name)
 
@@ -156,18 +164,22 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
 
                     f.write(json.dumps(result))
                     f.close()
-                
-                os.remove(vehicles[i])
 
                 print(str(len(lp_detections)) + " license plates were found.")
             
             else:
                 print("No license plates were found.")
+                return None
+
+            os.remove(vehicles[i])
             
         os.rmdir(save_path)
 
         return original_bounding_boxes
 
 def detect(image_path, annot_path):
-    vehicles, result_name, crop_locations, save_path = vehicle_detector(image_path)
-    return lp_detector(vehicles, result_name, crop_locations, save_path, annot_path)
+    if vehicle_detector(image_path) is None:
+        return []
+    else:
+        vehicles, result_name, crop_locations, save_path = vehicle_detector(image_path)
+        return lp_detector(vehicles, result_name, crop_locations, save_path, annot_path)
