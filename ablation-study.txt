@@ -1,0 +1,17 @@
+# Ablation study thresholds
+
+study-0 (base):
+    vehicle detection threshold = 0.25
+    license plate detection threshold = 0.01
+
+study-1:
+    vehicle detection threshold = 0.2
+    license plate detection threshold = 0.05
+
+study-2:
+    vehicle detection threshold = 0.25
+    license plate detection threshold = 0.05
+
+study-3:
+    vehicle detection threshold = 0.15
+    license plate detection threshold = 0.01
