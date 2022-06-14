@@ -52,5 +52,7 @@ for dir in os.listdir(root): # Iterating through all the sequences in the root d
 
 end = time.time()
 
-print(f"Elapsed time : {end-start} seconds.") # Total elapsed time in whole operation
+duration = int(end - start)
+
+print(f"Elapsed time : {duration//60} minutes {duration%60} seconds.") # Total elapsed time in whole operation
 
