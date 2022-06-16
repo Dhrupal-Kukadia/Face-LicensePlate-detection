@@ -13,7 +13,7 @@ start  = time.time()
 
 root = os.path.join(os.getcwd(), "IDD2_Subset") # Get directory of root directory
 
-for dir in os.listdir(root): # Iterating through all the sequences in the root directory
+for dir in os.listdir(root)[:1]: # Iterating through all the sequences in the root directory
 
     currdir = os.path.join(root, dir) # Sequence directory
     privacy_path = os.path.join(currdir, "privacy") # Directory of privacy folder in the sequence
