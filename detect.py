@@ -121,7 +121,7 @@ def reset_crop(crop_location, bounding_box):
 
     return bounding_box
 
-def vehicle_detector(image_path):
+def vehicle_detector(image_path, annot_path):
     """
     Function to detect vehicles in an image.
 
@@ -136,14 +136,22 @@ def vehicle_detector(image_path):
     image, image_shape = prepare_image(vehicle_network, image_path)
     detections = dn.detect_image(vehicle_network, vehicle_class_names, image, thresh=VEHICLE_DETECTOR_THRESHOLD)
 
+    image_name = image_path.split('\\')[-1]
+    save_path = os.path.splitext(image_path)[0]
+    result_name = os.path.splitext(image_name)[0] + ".json"
+
+    if not os.path.exists(annot_path):
+        os.makedirs(annot_path)
+
+    filename = os.path.join(annot_path, result_name)
+
+    with open(filename, mode="w", encoding="utf-8") as f:
+        pass
+
     if(len(detections)):
         bounding_boxes = [dn.bbox2points(item[2]) for item in detections]
 
         scaled_bounding_boxes = [scaling(image_shape, vehicle_network_shape, box) for box in bounding_boxes]
-
-        image_name = image_path.split('\\')[-1]
-        save_path = os.path.splitext(image_path)[0]
-        result_name = os.path.splitext(image_name)[0] + ".json"
         
         vehicles = []
 
@@ -172,6 +180,9 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
         If, no license plates are detected, empty list is returned
         Else, list of bounding box on original images of license plates.
     """
+
+    filename = os.path.join(annot_path, result_name)
+
     if(len(vehicles)):
         result = {}
 
@@ -185,14 +196,6 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
                 scaled_bounding_boxes = [scaling(lp_image_shape, lp_network_shape, box) for box in bounding_boxes]
 
                 original_bounding_boxes = [reset_crop(crop_locations[i], box) for box in scaled_bounding_boxes]
-
-                if not os.path.exists(annot_path):
-                    os.makedirs(annot_path)
-
-                filename = os.path.join(annot_path, result_name)
-
-                with open(filename, mode="w", encoding="utf-8") as f:
-                    pass
 
                 with open(filename, mode="a", encoding="utf-8") as f:
                     vehicle = {}
@@ -228,8 +231,8 @@ def detect(image_path, annot_path):
         If no vehicles are found, empty list is returned.
         Else, list of bounding box on original images of license plates.
     """
-    if vehicle_detector(image_path) is None:
+    if vehicle_detector(image_path, annot_path) is None:
         return []
     else:
-        vehicles, result_name, crop_locations, save_path = vehicle_detector(image_path)
+        vehicles, result_name, crop_locations, save_path = vehicle_detector(image_path, annot_path)
         return lp_detector(vehicles, result_name, crop_locations, save_path, annot_path)
