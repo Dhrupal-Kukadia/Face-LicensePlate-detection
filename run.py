@@ -13,7 +13,7 @@ import cv2
 import pathlib
 import time
 
-def blur_image():
+def blur_image(blur, x1, y1, x2, y2):
     #Face blur
     face = blur.crop((x1, y1, x2, y2))
     face_blur = face.filter(ImageFilter.GaussianBlur(radius=20))
@@ -22,7 +22,7 @@ def blur_image():
 start  = time.time()
 
 #Path
-root = r""
+root = os.path.join(os.getcwd(), "IDD2_Subset")
 
 #Iterate through root directory
 for dir in os.listdir(root):
@@ -85,6 +85,10 @@ for dir in os.listdir(root):
             #Face detection
             faces = RetinaFace.detect_faces(frame_path, threshold=0.5) 
 
+            print(f"{len(faces)} faces were detected in {frame}")
+
+            result = {}
+
             for face in faces:
                 #Faces detected
                 if(len(face) != 0):
@@ -104,16 +108,17 @@ for dir in os.listdir(root):
                     blur_image(blur, x1, y1, x2, y2)
 
                     #Annotations
-                    with open(f"{face_path}/{file_name}.json", "w") as f:
-                        json.dump(faces, f)
-                else:
-                    #No annotations
-                    with open(f"{face_path}/{file_name}.json", "w") as f:
-                        pass
+                    result[face] = {
+                        'Confidence': faces[face]['score'],
+                        'Bounding box': [int(point) for point in faces[face]['facial_area']]
+                    } 
+                    
+                with open(f"{face_path}/{file_name}.json", "w") as f:
+                    f.write(json.dumps(result))
 
                 #License plates detected
                 if plates is not None: 
-                    print(f"{len(plates)} license plates were found in {frame}") 
+                    print(f"{len(plates)} license plates were detected in {frame}") 
                     for box in plates:
                         left, top, right, bottom = [int(item) for item in box] # Converting bounding box coordinates to integer type
 
@@ -121,7 +126,7 @@ for dir in os.listdir(root):
                         cv2.rectangle(dt, (left, top), (right, bottom), (255, 0, 0), 2) 
 
                         #Blur the plate
-                        blur_image(blur, top, left, right, bottom)
+                        blur_image(blur, left, top, right, bottom)
 
                 #Save the image
                 blur.save(f"{blur_folder_path}\{file_name}.png")
