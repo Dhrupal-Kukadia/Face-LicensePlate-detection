@@ -67,18 +67,19 @@ def save_image(image_path, save_path, image_name, box= None):
     image_name: Name of the image file.
     box: Bounding box coordinates.
     """
+    if box:
+        for point in box:
+            if point < 0:
+                return False
+
     if save_path:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
         image = cv2.imread(image_path)
 
-        if box:
-            for point in box:
-                if point < 0:
-                    return False
-            box = [int(item) for item in box]
-            image = image[box[1]: box[3], box[0]: box[2]]
+        box = [int(item) for item in box]
+        image = image[box[1]: box[3], box[0]: box[2]]
 
         cv2.imwrite(os.path.join(save_path, image_name), image)
 
