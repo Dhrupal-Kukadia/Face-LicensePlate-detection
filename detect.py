@@ -8,6 +8,7 @@ import cv2
 import json
 import os
 import numpy as np
+import shutil
 
 # loading necessary files for vehicle detecting network
 VEHICLE_DETECTOR_CFG = "data/vehicle-detection.cfg"
@@ -38,8 +39,8 @@ def prepare_image(network, image_path):
     its byte copy which is required by Darknet for prediction.
 
     Parameters:
-    network: Loaded network object, the rescaling size is obtained from here.
-    image_path: Path of the image to be converted.
+        network: Loaded network object, the rescaling size is obtained from here.
+        image_path: Path of the image to be converted.
     """
     width = dn.network_width(network)
     height = dn.network_height(network)
@@ -62,23 +63,23 @@ def save_image(image_path, save_path, image_name, box= None):
     are provided.
 
     Parameters:
-    image_path: Location of image to be saved.
-    save_path: Location where image has to be saved, if it doesn't exist, it will be created.
-    image_name: Name of the image file.
-    box: Bounding box coordinates.
+        image_path: Location of image to be saved.
+        save_path: Location where image has to be saved, if it doesn't exist, it will be created.
+        image_name: Name of the image file.
+        box: Bounding box coordinates.
     """
+    if box:
+        for point in box:
+            if point < 0:
+                return False
+
     if save_path:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
         image = cv2.imread(image_path)
-
-        if box:
-            for point in box:
-                if point < 0:
-                    return False
-            box = [int(item) for item in box]
-            image = image[box[1]: box[3], box[0]: box[2]]
+        box = [int(item) for item in box]
+        image = image[box[1]: box[3], box[0]: box[2]]
 
         cv2.imwrite(os.path.join(save_path, image_name), image)
 
@@ -90,9 +91,9 @@ def scaling(image_shape, network_shape, box):
     from the network's required resolution to its original resolution. 
 
     Parameters:
-    image_shape: Original resolution of image.
-    network_shape: Network's input resolution.
-    box: Bounding box coordinates.
+        image_shape: Original resolution of image.
+        network_shape: Network's input resolution.
+        box: Bounding box coordinates.
     """
     scale = np.divide(image_shape, network_shape)
 
@@ -110,8 +111,8 @@ def reset_crop(crop_location, bounding_box):
     Function to obtain original coordinates of a bounding box obtained on a crop from an image.
 
     Parameters:
-    crop_locations: Bounding box of crop, from where bounding boxes are obtained.
-    bounding_box: Bounding box of detected object.
+        crop_locations: Bounding box of crop, from where bounding boxes are obtained.
+        bounding_box: Bounding box of detected object.
     """
     bounding_box[0] = crop_location[0] + bounding_box[0]
     bounding_box[1] = crop_location[1] + bounding_box[1]
@@ -125,7 +126,7 @@ def vehicle_detector(image_path):
     Function to detect vehicles in an image.
 
     Parameters:
-    image_path: Path of image to be used for detection.
+        image_path: Path of image to be used for detection.
 
     Return:
         If no vehicles are detected, NoneType object is returned.
@@ -161,11 +162,11 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
     Function to detect license plates in detected vehicles' cropped images.
 
     Parameters:
-    vehicles: List of locations where cropped images of vehicles are saved.
-    result_name: File name of annotation file.
-    crop_locations: Bounding box of vehicles, from where their cropped images are obtained.
-    save_path: Path where cropped images are saved.
-    annot_path: Path where annotation file will be saved.
+        vehicles: List of locations where cropped images of vehicles are saved.
+        result_name: File name of annotation file.
+        crop_locations: Bounding box of vehicles, from where their cropped images are obtained.
+        save_path: Path where cropped images are saved.
+        annot_path: Path where annotation file will be saved.
 
     Return:
         If, no license plates are detected, empty list is returned
@@ -210,10 +211,8 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
             
             else:
                 original_bounding_boxes = None
-
-            os.remove(vehicles[i])
-            
-        os.rmdir(save_path)
+        
+        shutil.rmtree(save_path)
 
         return original_bounding_boxes
 
@@ -222,8 +221,8 @@ def detect(image_path, annot_path):
     Wrapper function for end-to-end detection of license plates.
 
     Parameters:
-    image_path: Location of image for detection.
-    annot_path: Path for saving bounding box annotation.
+        image_path: Location of image for detection.
+        annot_path: Path for saving bounding box annotation.
 
     Return:
         If no vehicles are found, empty list is returned.
