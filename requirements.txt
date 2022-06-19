@@ -3,4 +3,3 @@ opencv-python
 Pillow
 retina-face
 tensorflow
-matplotlib
