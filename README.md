@@ -1,4 +1,4 @@
-# lp-detector
+# Face-LicensePlate-detection
 License plate detector based on darknet
 
 For building darknet follow the instructions given [here](https://github.com/AlexeyAB/darknet#requirements-for-windows-linux-and-macos)
