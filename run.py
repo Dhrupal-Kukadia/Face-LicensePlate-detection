@@ -1,6 +1,5 @@
 """
-The file will detect all the frames in a folder, detect and blur all the license plates present in all the vehicles 
-present in them.
+The file will be detecting and blurring the faces and the license plates for all the frames in a folder.
 """
 
 from detect import detect
