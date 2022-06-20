@@ -52,6 +52,8 @@ for dir in os.listdir(root):
     if not os.path.exists(faces_path):
         os.mkdir(faces_path) 
 
+    visualize = True
+
     #Iterate through 'cam' directories
     for cam in os.listdir(camera):
         currcam = os.path.join(camera, cam)
@@ -128,8 +130,14 @@ for dir in os.listdir(root):
                         #Blur the plate
                         blur_image(blur, left, top, right, bottom)
 
-                #Save the image
-                blur.save(f"{blur_folder_path}\{file_name}.png")
+                if visualize:
+                    #Visualization
+                    plt.figure(figsize=(20, 20))
+                    plt.imshow(dt[:, :, ::-1])
+                    plt.show()
+                else:
+                    #Save the image
+                    blur.save(f"{blur_folder_path}\{file_name}.png")
 
         print(f"Detection for {cam} of {dir} has been completed")
     
