@@ -6,11 +6,53 @@ from detect import detect
 from PIL import Image, ImageFilter
 from retinaface import RetinaFace
 from matplotlib import pyplot as plt
+from centroidtracker import CentroidTracker
 import json
 import os 
 import cv2 
 import pathlib
 import time
+import numpy as np
+
+def non_max_suppression_fast(boxes, overlapThresh):
+    try:
+        if len(boxes) == 0:
+            return []
+
+        if boxes.dtype.kind == "i":
+            boxes = boxes.astype("float")
+
+        pick = []
+
+        x1 = boxes[:, 0]
+        y1 = boxes[:, 1]
+        x2 = boxes[:, 2]
+        y2 = boxes[:, 3]
+
+        area = (x2 - x1 + 1) * (y2 - y1 + 1)
+        idxs = np.argsort(y2)
+
+        while len(idxs) > 0:
+            last = len(idxs) - 1
+            i = idxs[last]
+            pick.append(i)
+
+            xx1 = np.maximum(x1[i], x1[idxs[:last]])
+            yy1 = np.maximum(y1[i], y1[idxs[:last]])
+            xx2 = np.minimum(x2[i], x2[idxs[:last]])
+            yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+            w = np.maximum(0, xx2 - xx1 + 1)
+            h = np.maximum(0, yy2 - yy1 + 1)
+
+            overlap = (w * h) / area[idxs[:last]]
+
+            idxs = np.delete(idxs, np.concatenate(([last],
+                                                   np.where(overlap > overlapThresh)[0])))
+
+        return boxes[pick].astype("int")
+    except Exception as e:
+        print("Exception occurred in non_max_suppression : {}".format(e))
 
 def blur_image(blur, x1, y1, x2, y2):
     #Face blur
@@ -19,6 +61,8 @@ def blur_image(blur, x1, y1, x2, y2):
     blur.paste(face_blur, (x1, y1, x2, y2))
 
 start  = time.time()
+
+tracker = CentroidTracker(maxDisappeared=20, maxDistance=90)
 
 #Path
 root = os.path.join(os.getcwd(), "IDD2_Subset")
@@ -120,14 +164,28 @@ for dir in os.listdir(root):
                 #License plates detected
                 if plates is not None: 
                     print(f"{len(plates)} license plates were detected in {frame}") 
-                    for box in plates:
-                        left, top, right, bottom = [int(item) for item in box] # Converting bounding box coordinates to integer type
+
+                    #NMS
+                    boundingboxes = np.array(plates)
+                    boundingboxes = boundingboxes.astype(int)
+                    plates = non_max_suppression_fast(boundingboxes, 0.5)
+
+                    #Object tracking
+                    objects = tracker.update(plates)
+                    for (objectId, bbox) in objects.items():
+                        x1, y1, x2, y2 = bbox
+                        x1 = int(x1)
+                        y1 = int(y1)
+                        x2 = int(x2)
+                        y2 = int(y2)
 
                         #Coordinates of plate
-                        cv2.rectangle(dt, (left, top), (right, bottom), (255, 0, 0), 2) 
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        text = "ID: {}".format(objectId)
+                        cv2.putText(frame, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 
                         #Blur the plate
-                        blur_image(blur, left, top, right, bottom)
+                        blur_image(blur, x1, y1, x2, y2)
 
                 if visualize:
                     #Visualization
