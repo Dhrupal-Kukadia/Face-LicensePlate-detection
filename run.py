@@ -180,9 +180,9 @@ for dir in os.listdir(root):
                         y2 = int(y2)
 
                         #Coordinates of plate
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        cv2.rectangle(dt, (x1, y1), (x2, y2), (0, 0, 255), 2)
                         text = "ID: {}".format(objectId)
-                        cv2.putText(frame, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
+                        cv2.putText(dt, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 
                         #Blur the plate
                         blur_image(blur, x1, y1, x2, y2)
