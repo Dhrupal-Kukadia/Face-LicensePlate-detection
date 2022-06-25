@@ -7,13 +7,14 @@ from PIL import Image, ImageFilter
 from retinaface import RetinaFace
 from matplotlib import pyplot as plt
 from centroidtracker import CentroidTracker
+import numpy as np
 import json
 import os 
 import cv2 
 import pathlib
 import time
-import numpy as np
 
+#NMS
 def non_max_suppression_fast(boxes, overlapThresh):
     try:
         if len(boxes) == 0:
@@ -54,8 +55,8 @@ def non_max_suppression_fast(boxes, overlapThresh):
     except Exception as e:
         print("Exception occurred in non_max_suppression : {}".format(e))
 
+#Blur
 def blur_image(blur, x1, y1, x2, y2):
-    #Face blur
     face = blur.crop((x1, y1, x2, y2))
     face_blur = face.filter(ImageFilter.GaussianBlur(radius=20))
     blur.paste(face_blur, (x1, y1, x2, y2))
@@ -130,9 +131,7 @@ for dir in os.listdir(root):
             #Face detection
             faces = RetinaFace.detect_faces(frame_path, threshold=0.5) 
 
-            print(f"{len(faces)} faces were detected in {frame}")
-
-            result = {}
+            face_result = {}
 
             for face in faces:
                 #Faces detected
@@ -153,39 +152,61 @@ for dir in os.listdir(root):
                     blur_image(blur, x1, y1, x2, y2)
 
                     #Annotations
-                    result[face] = {
+                    face_result[face] = {
                         'Confidence': faces[face]['score'],
                         'Bounding box': [int(point) for point in faces[face]['facial_area']]
                     } 
                     
                 with open(f"{face_path}/{file_name}.json", "w") as f:
-                    f.write(json.dumps(result))
+                    f.write(json.dumps(face_result))
 
-                #License plates detected
+                #License plates
+                lic_result = {}
+                
                 if plates is not None: 
-                    print(f"{len(plates)} license plates were detected in {frame}") 
+                    for vehicles in plates:
+                        boxes = []
+                        confidence = 0
+                        for detections in plates[vehicles]:
+                            for bbox in plates[vehicles][detections]:
+                                if bbox != 'Confidence':
+                                    boxes.append(plates[vehicles][detections][bbox])
+                                else:
+                                    confidence = max(confidence, float(plates[vehicles][detections][bbox]))
+ 
+                        #NMS
+                        boundingboxes = np.array(boxes)
+                        boundingboxes = boundingboxes.astype(int)
+                        boxes = non_max_suppression_fast(boundingboxes, 0.3)
 
-                    #NMS
-                    boundingboxes = np.array(plates)
-                    boundingboxes = boundingboxes.astype(int)
-                    plates = non_max_suppression_fast(boundingboxes, 0.5)
+                        #Object tracking
+                        objects = tracker.update(boxes)
+                        for (objectId, bbox) in objects.items():
+                            x1, y1, x2, y2 = bbox
+                            x1 = int(x1)
+                            y1 = int(y1)
+                            x2 = int(x2)
+                            y2 = int(y2)
 
-                    #Object tracking
-                    objects = tracker.update(plates)
-                    for (objectId, bbox) in objects.items():
-                        x1, y1, x2, y2 = bbox
-                        x1 = int(x1)
-                        y1 = int(y1)
-                        x2 = int(x2)
-                        y2 = int(y2)
+                            #Coordinates of plate
+                            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                            text = "ID: {}".format(objectId)
+                            cv2.putText(frame, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 
-                        #Coordinates of plate
-                        cv2.rectangle(dt, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                        text = "ID: {}".format(objectId)
-                        cv2.putText(dt, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
+                            #Blur the plate
+                            blur_image(blur, x1, y1, x2, y2)
 
-                        #Blur the plate
-                        blur_image(blur, x1, y1, x2, y2)
+                            #Annotations
+                            vehicle = {
+                                objectId: {
+                                    'Confidence': confidence,
+                                    'Bounding box': boxes.tolist(),
+                                }
+                            }
+                            lic_result[vehicles] = vehicle
+                
+                with open(f"{lic_path}/{file_name}.json", "w") as f:
+                    f.write(json.dumps(lic_result))
 
                 if visualize:
                     #Visualization
@@ -195,6 +216,8 @@ for dir in os.listdir(root):
                 else:
                     #Save the image
                     blur.save(f"{blur_folder_path}\{file_name}.png")
+
+            print(f"{frame} has been processed")
 
         print(f"Detection for {cam} of {dir} has been completed")
     
