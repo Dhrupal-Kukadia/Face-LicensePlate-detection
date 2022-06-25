@@ -5,7 +5,6 @@ utility functions which are needed for doing related tasks like scaling, croppin
 
 import darknet.darknet as dn # importing darknet wrapper for python
 import cv2
-import json
 import os
 import numpy as np
 import shutil
@@ -197,27 +196,22 @@ def lp_detector(vehicles, result_name, crop_locations, save_path, annot_path):
 
                 original_bounding_boxes = [reset_crop(crop_locations[i], box) for box in scaled_bounding_boxes]
 
-                with open(filename, mode="a", encoding="utf-8") as f:
-                    vehicle = {}
-                    for j in range(len(lp_detections)):
-                        lp = {
-                        'confidence': lp_detections[j][1],
-                        'bounding box': original_bounding_boxes[j],
-                        }  
+                vehicle = {}
+                for j in range(len(lp_detections)):
+                    lp = {
+                    'confidence': lp_detections[j][1],
+                    'bounding box': original_bounding_boxes[j],
+                    }  
 
-                        vehicle[j] = lp
+                    vehicle[j] = lp
                     
-                    result[i] = vehicle
-
-                    f.write(json.dumps(result))
-                    f.close()
-            
+                result[i] = vehicle            
             else:
                 original_bounding_boxes = None
         
         shutil.rmtree(save_path)
 
-        return original_bounding_boxes
+        return result
 
 def detect(image_path, annot_path):
     """
