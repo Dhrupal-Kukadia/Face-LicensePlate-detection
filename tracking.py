@@ -74,8 +74,8 @@ for dir in os.listdir(root):
                         for file in emptyFrames:
                             if m != lineSegments:
                                 n = lineSegments - m
-                                x1, y1 = dissecting_the_frames(x11, y11, x12, y12, m, n)
-                                x2, y2 = dissecting_the_frames(x21, y21, x22, y22, m, n)
+                                x1, y1 = dissecting_the_frames(x11, x12, y11, y12, m, n)
+                                x2, y2 = dissecting_the_frames(x21, x22, y21, y22, m, n)
 
                                 m += 1
 
@@ -95,5 +95,5 @@ for dir in os.listdir(root):
                     #Reset the parameters
                     vehicle = 0
                     objID = 0
-                    detectedFrames.clear()
+                    detectedFrames.pop(frames[0])
                     emptyFrames.clear()
