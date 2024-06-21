@@ -62,7 +62,7 @@ The project aims at blurring the face and license plates captured in the frames 
 
 The detection task divided into face and license plate detection. Face detection is done using [Retina-Face](https://pypi.org/project/retina-face/), while license plate detection is done using [this approach](https://web.inf.ufpr.br/vri/publications/layout-independent-alpr/).
 
-### RetinaFace
+### Retina-Face
 
 The algorithm used for face detection is based on this [paper](https://arxiv.org/pdf/1905.00641). RetinaFace is a robust single-stage face detection model designed for high-precision face localization in images. Its architecture utilizes a single deep neural network with a multi-task loss function, incorporating three key tasks: face detection bounding box regression, facial landmark localization, and detection of face rotation angles. RetinaFace achieves state-of-the-art performance by leveraging a lightweight and efficient design suitable for real-time applications.
 
