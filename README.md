@@ -64,13 +64,19 @@ The detection task divided into face and license plate detection. Face detection
 
 ### RetinaFace
 
+The algorithm used for face detection is based on this [paper](https://arxiv.org/pdf/1905.00641). RetinaFace is a robust single-stage face detection model designed for high-precision face localization in images. Its architecture utilizes a single deep neural network with a multi-task loss function, incorporating three key tasks: face detection bounding box regression, facial landmark localization, and detection of face rotation angles. RetinaFace achieves state-of-the-art performance by leveraging a lightweight and efficient design suitable for real-time applications.
+
+![pic1.png]()
+
+![pic2.png]()
+
 ### License Plate Detection
 
 The algorithm used for license plate detection is based on this [paper](https://arxiv.org/pdf/1909.01754.pdf). It states that in order to detect license plate, we need to first detect vehicles, which will be followed by cropping the vehicle images which are used for detecting license plates. The task is carried out by two YOLO-based networks, YOLO-v2 for vehicle detection and Fast YOLO-v2.
 
-![pic1.png](images/pic1.png)
+![pic1.png](https://github.com/ankitoscar/face-lp-detector/blob/main/images/pic1.png)
 
-![pic2.png](images/pic2.png)
+![pic2.png](https://github.com/ankitoscar/face-lp-detector/blob/main/images/pic2.png)
 
 <p align="center">License Plate Detection</p>
 
@@ -84,6 +90,7 @@ Blurring is done by make two instances of the frame, one is used for getting det
 
 * [Python](https://www.python.org/)
 * [Tensorflow](https://www.tensorflow.org/)
+* [RetinaFace](https://pypi.org/project/retina-face/)
 * [Darknet](https://github.com/AlexeyAB/darknet)
 * [OpenCV](https://opencv.org/)
 * [Pillow](https://pillow.readthedocs.io/)
